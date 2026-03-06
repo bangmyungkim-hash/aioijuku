@@ -14,11 +14,24 @@ export default async function ParentDashboard() {
 
   if (profile?.role !== "parent") redirect("/");
 
-  // 紐付いている生徒を取得
+  // 紐付いている生徒IDを取得
   const { data: links } = await supabase
     .from("parent_student_links")
-    .select("student_user_id, users!parent_student_links_student_user_id_fkey(full_name)")
+    .select("student_user_id")
     .eq("parent_user_id", user.id);
+
+  // 生徒の名前を別途取得
+  const studentIds = links?.map((l) => l.student_user_id) ?? [];
+  const { data: students } = studentIds.length > 0
+    ? await supabase
+        .from("users")
+        .select("id, full_name")
+        .in("id", studentIds)
+    : { data: [] };
+
+  const studentMap = Object.fromEntries(
+    (students ?? []).map((s) => [s.id, s.full_name])
+  );
 
   return (
     <div className="min-h-screen bg-brand-50">
@@ -43,7 +56,7 @@ export default async function ParentDashboard() {
                 <div key={link.student_user_id} className="card flex items-center justify-between">
                   <div>
                     <p className="font-bold text-gray-800">
-                      {(link.users as unknown as { full_name: string } | null)?.full_name ?? "—"}
+                      {studentMap[link.student_user_id] ?? "—"}
                     </p>
                     <p className="text-xs text-gray-500 mt-0.5">学習状況を確認する</p>
                   </div>
