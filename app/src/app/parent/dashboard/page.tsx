@@ -60,7 +60,7 @@ export default async function ParentDashboard() {
                     </p>
                     <p className="text-xs text-gray-500 mt-0.5">学習状況を確認する</p>
                   </div>
-                  <a
+                  
                     href={`/parent/student/${link.student_user_id}`}
                     className="btn-secondary text-sm py-2 px-4"
                   >
