@@ -43,7 +43,7 @@ export default async function ParentDashboard() {
                 <div key={link.student_user_id} className="card flex items-center justify-between">
                   <div>
                     <p className="font-bold text-gray-800">
-                      {(link.users as { full_name: string } | null)?.full_name ?? "—"}
+                      {(link.users as unknown as { full_name: string } | null)?.full_name ?? "—"}
                     </p>
                     <p className="text-xs text-gray-500 mt-0.5">学習状況を確認する</p>
                   </div>
