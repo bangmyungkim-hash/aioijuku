@@ -28,7 +28,15 @@ export default async function StudentDashboard() {
           <span className="text-2xl">🌱</span>
           <span className="font-extrabold text-lg">あいおい塾</span>
         </div>
-        <span className="text-sm opacity-90">{profile?.full_name} さん</span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm opacity-90">{profile?.full_name}</span>
+          <form action="/api/auth/logout" method="POST">
+            <button type="submit"
+              className="text-xs bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-3 py-1.5 rounded-lg transition-colors">
+              ログアウト
+            </button>
+          </form>
+        </div>
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
