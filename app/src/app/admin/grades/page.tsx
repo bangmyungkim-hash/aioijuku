@@ -148,8 +148,8 @@ export default async function AdminGradesPage() {
           {results && results.length > 0 ? (
             <div className="space-y-2">
               {results.map((r) => {
-                const studentName = (r.users as { full_name: string } | null)?.full_name ?? "—";
-                const exam = r.exams as { name: string; exam_date: string; type: string } | null;
+                const studentName = (r.users as unknown as { full_name: string } | null)?.full_name ?? "—";
+                const exam = r.exams as unknown as { name: string; exam_date: string; type: string } | null;
                 const pct = r.max_score > 0 ? Math.round((r.score / r.max_score) * 100) : 0;
                 return (
                   <div key={r.id} className="card">

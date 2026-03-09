@@ -68,7 +68,7 @@ export default async function ParentStudentDetailPage({
     .order("submitted_at", { ascending: false })
     .limit(5);
 
-  const studentProfile = (student?.student_profiles as { grade: string; school_name: string; enrollment_date: string } | null);
+  const studentProfile = (student?.student_profiles as unknown as { grade: string; school_name: string; enrollment_date: string } | null);
 
   const methodLabel: Record<string, string> = { qr: "QR", button: "ボタン", parent_button: "保護者" };
   const locationLabel: Record<string, string> = { classroom: "教室", home: "自宅" };
@@ -158,7 +158,7 @@ export default async function ParentStudentDetailPage({
           {results && results.length > 0 ? (
             <div className="space-y-2">
               {results.slice(0, 10).map((r) => {
-                const exam = r.exams as { name: string; exam_date: string; type: string } | null;
+                const exam = r.exams as unknown as { name: string; exam_date: string; type: string } | null;
                 const pct = r.max_score > 0 ? Math.round((r.score / r.max_score) * 100) : 0;
                 return (
                   <div key={r.id} className="card flex items-center justify-between">

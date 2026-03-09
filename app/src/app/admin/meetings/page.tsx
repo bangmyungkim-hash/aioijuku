@@ -133,7 +133,7 @@ export default async function AdminMeetingsPage() {
           {meetings && meetings.length > 0 ? (
             <div className="space-y-3">
               {meetings.map((m) => {
-                const studentName = (m.users as { full_name: string } | null)?.full_name ?? "—";
+                const studentName = (m.users as unknown as { full_name: string } | null)?.full_name ?? "—";
                 return (
                   <div key={m.id} className="card">
                     <div className="flex items-start justify-between gap-4 mb-2">

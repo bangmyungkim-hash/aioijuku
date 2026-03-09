@@ -82,7 +82,7 @@ export default async function ParentAbsencePage() {
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
                     <option value="">選択してください</option>
                     {links.map((l) => {
-                      const name = (l.users as { full_name: string } | null)?.full_name ?? "—";
+                      const name = (l.users as unknown as { full_name: string } | null)?.full_name ?? "—";
                       return (
                         <option key={l.student_user_id} value={l.student_user_id}>{name}</option>
                       );
@@ -140,7 +140,7 @@ export default async function ParentAbsencePage() {
               {requests && requests.length > 0 ? (
                 <div className="space-y-2">
                   {requests.map((req) => {
-                    const studentName = (req.users as { full_name: string } | null)?.full_name ?? "—";
+                    const studentName = (req.users as unknown as { full_name: string } | null)?.full_name ?? "—";
                     return (
                       <div key={req.id} className="card">
                         <div className="flex items-start justify-between gap-3">

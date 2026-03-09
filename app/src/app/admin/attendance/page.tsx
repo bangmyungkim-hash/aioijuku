@@ -83,7 +83,7 @@ export default async function AdminAttendancePage() {
           {todayLogs && todayLogs.length > 0 ? (
             <div className="space-y-2">
               {todayLogs.map((log) => {
-                const name = (log.users as { full_name: string } | null)?.full_name ?? "—";
+                const name = (log.users as unknown as { full_name: string } | null)?.full_name ?? "—";
                 return (
                   <div key={log.id} className="card flex items-center justify-between">
                     <div>
@@ -124,7 +124,7 @@ export default async function AdminAttendancePage() {
           {pendingAbsences && pendingAbsences.length > 0 ? (
             <div className="space-y-3">
               {pendingAbsences.map((req) => {
-                const name = (req.users as { full_name: string } | null)?.full_name ?? "—";
+                const name = (req.users as unknown as { full_name: string } | null)?.full_name ?? "—";
                 return (
                   <div key={req.id} className="card border-orange-200 bg-orange-50">
                     <div className="flex items-start justify-between gap-4">
@@ -170,7 +170,7 @@ export default async function AdminAttendancePage() {
           {confirmedAbsences && confirmedAbsences.length > 0 ? (
             <div className="space-y-2">
               {confirmedAbsences.map((req) => {
-                const name = (req.users as { full_name: string } | null)?.full_name ?? "—";
+                const name = (req.users as unknown as { full_name: string } | null)?.full_name ?? "—";
                 return (
                   <div key={req.id} className="card opacity-70">
                     <div className="flex items-center justify-between">

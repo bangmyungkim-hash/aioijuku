@@ -71,7 +71,7 @@ export default async function StudentLearningPage() {
             <h2 className="text-sm font-bold text-gray-500 mb-3 px-1">📖 教材の進捗</h2>
             <div className="space-y-3">
               {progress.map((p) => {
-                const mat = p.materials as { name: string; subject: string; total_units: number | null } | null;
+                const mat = p.materials as unknown as { name: string; subject: string; total_units: number | null } | null;
                 const pct = Number(p.completion_pct);
                 return (
                   <div key={p.material_id} className="card">
@@ -107,7 +107,7 @@ export default async function StudentLearningPage() {
           {logs && logs.length > 0 ? (
             <div className="space-y-2">
               {logs.map((log) => {
-                const mat = log.materials as { name: string; subject: string } | null;
+                const mat = log.materials as unknown as { name: string; subject: string } | null;
                 return (
                   <div key={log.id} className="card">
                     <div className="flex items-center justify-between">

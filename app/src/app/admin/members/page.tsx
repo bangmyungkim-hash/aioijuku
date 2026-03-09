@@ -77,7 +77,7 @@ export default async function AdminMembersPage() {
           </h2>
           <div className="space-y-3">
             {students && students.length > 0 ? students.map((s) => {
-              const profile = s.student_profiles as { grade: string; school_name: string } | null;
+              const profile = s.student_profiles as unknown as { grade: string; school_name: string } | null;
               const parentIds = studentParentMap[s.id] ?? [];
               return (
                 <div key={s.id} className="card">

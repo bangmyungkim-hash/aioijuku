@@ -28,7 +28,7 @@ export default async function StudentGradesPage() {
   }> = {};
 
   results?.forEach((r) => {
-    const exam = r.exams as { id: string; name: string; type: string; exam_date: string } | null;
+    const exam = r.exams as unknown as { id: string; name: string; type: string; exam_date: string } | null;
     if (!exam) return;
     if (!examMap[exam.id]) {
       examMap[exam.id] = { exam, results: [] };
