@@ -41,7 +41,7 @@ export default async function AdminDashboard() {
           <span className="text-2xl">🌱</span>
           <span className="font-extrabold text-lg">あいおい塾 管理画面</span>
         </div>
-         <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3">
           <span className="text-sm opacity-90">{profile?.full_name}</span>
           <form action="/api/auth/logout" method="POST">
             <button type="submit"

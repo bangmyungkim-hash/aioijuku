@@ -29,7 +29,7 @@ export default async function StudentDashboard() {
           <span className="font-extrabold text-lg">あいおい塾</span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-sm opacity-90">{profile?.full_name}</span>
+          <span className="text-sm opacity-90">{profile?.full_name} さん</span>
           <form action="/api/auth/logout" method="POST">
             <button type="submit"
               className="text-xs bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-3 py-1.5 rounded-lg transition-colors">
