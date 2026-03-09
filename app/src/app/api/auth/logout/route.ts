@@ -6,5 +6,6 @@ export async function POST(request: NextRequest) {
   await supabase.auth.signOut();
   // アプリ自身の /login にリダイレクト
   const origin = request.nextUrl.origin;
-  return NextResponse.redirect(new URL("/login", origin));
+  // 303 See Other → ブラウザが GET でログイン画面を開く（405エラー防止）
+  return NextResponse.redirect(new URL("/login", origin), { status: 303 });
 }

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 export default async function StudentDashboard() {
   const supabase = await createClient();
@@ -44,7 +45,7 @@ export default async function StudentDashboard() {
         {/* 学習開始ボタン */}
         <div className="card text-center py-8">
           <p className="text-sm text-gray-500 mb-3">今日の学習を始めよう！</p>
-          <StartLearningButton studentId={user.id} />
+          <StartLearningButton />
         </div>
 
         {/* ゲーミフィケーション */}
@@ -70,11 +71,20 @@ export default async function StudentDashboard() {
   );
 }
 
-// ── 学習開始ボタン（Client Component に切り出し予定）──
-function StartLearningButton({ studentId }: { studentId: string }) {
+// ── 学習開始 Server Action ──
+async function startLearningAction() {
+  "use server";
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  await supabase.rpc("record_learning_start", { p_student_id: user.id });
+  revalidatePath("/student/dashboard");
+}
+
+// ── 学習開始ボタン ──
+function StartLearningButton() {
   return (
-    <form action={`/api/learning/start`} method="POST">
-      <input type="hidden" name="studentId" value={studentId} />
+    <form action={startLearningAction}>
       <button
         type="submit"
         className="btn-primary text-xl px-10 py-4 rounded-2xl shadow-lg"

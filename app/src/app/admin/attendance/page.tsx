@@ -29,6 +29,15 @@ export default async function AdminAttendancePage() {
 
   const today = new Date().toISOString().split("T")[0];
 
+  // 今月の範囲
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth(); // 0-indexed
+  const monthStart = new Date(year, month, 1).toISOString().split("T")[0];
+  const monthEnd   = new Date(year, month + 1, 0).toISOString().split("T")[0];
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDayOfWeek = new Date(year, month, 1).getDay(); // 0=日
+
   // 本日の出席ログ
   const { data: todayLogs } = await supabase
     .from("attendance_logs")
@@ -36,7 +45,21 @@ export default async function AdminAttendancePage() {
     .eq("logged_date", today)
     .order("check_in_at", { ascending: true });
 
-  // 未確認の欠席連絡（新しい順）
+  // 今月の出席ログ（カレンダー用）
+  const { data: monthLogs } = await supabase
+    .from("attendance_logs")
+    .select("logged_date, student_user_id")
+    .gte("logged_date", monthStart)
+    .lte("logged_date", monthEnd);
+
+  // 今月の欠席連絡（カレンダー用）
+  const { data: monthAbsences } = await supabase
+    .from("absence_requests")
+    .select("absence_date, type")
+    .gte("absence_date", monthStart)
+    .lte("absence_date", monthEnd);
+
+  // 未確認の欠席連絡
   const { data: pendingAbsences } = await supabase
     .from("absence_requests")
     .select("id, student_user_id, absence_date, type, reason, submitted_at, users!absence_requests_student_user_id_fkey(full_name)")
@@ -51,6 +74,18 @@ export default async function AdminAttendancePage() {
     .order("submitted_at", { ascending: false })
     .limit(7);
 
+  // 日付ごとの出席人数マップ
+  const attendanceByDate: Record<string, number> = {};
+  for (const log of monthLogs ?? []) {
+    attendanceByDate[log.logged_date] = (attendanceByDate[log.logged_date] ?? 0) + 1;
+  }
+
+  // 日付ごとの欠席連絡マップ
+  const absenceByDate: Record<string, number> = {};
+  for (const ab of monthAbsences ?? []) {
+    absenceByDate[ab.absence_date] = (absenceByDate[ab.absence_date] ?? 0) + 1;
+  }
+
   const methodLabel: Record<string, string> = {
     qr: "QRコード",
     button: "ボタン",
@@ -60,6 +95,9 @@ export default async function AdminAttendancePage() {
     classroom: "教室",
     home: "自宅",
   };
+
+  const monthLabel = now.toLocaleDateString("ja-JP", { year: "numeric", month: "long" });
+  const weekDays = ["日", "月", "火", "水", "木", "金", "土"];
 
   return (
     <div className="min-h-screen bg-brand-50">
@@ -74,7 +112,70 @@ export default async function AdminAttendancePage() {
 
       <main className="max-w-3xl mx-auto px-4 py-6 space-y-8">
 
-        {/* 本日の出席 */}
+        {/* ── カレンダー ── */}
+        <section>
+          <h2 className="text-sm font-bold text-gray-500 mb-3 px-1">📆 月間カレンダー（{monthLabel}）</h2>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            {/* 凡例 */}
+            <div className="flex gap-4 px-4 py-2 border-b border-gray-100 text-xs text-gray-500">
+              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-brand-500 inline-block" /> 出席あり</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-orange-400 inline-block" /> 欠席連絡</span>
+            </div>
+            {/* 曜日ヘッダー */}
+            <div className="grid grid-cols-7 border-b border-gray-100">
+              {weekDays.map((d, i) => (
+                <div key={d} className={`text-center text-xs font-bold py-2 ${i === 0 ? "text-red-500" : i === 6 ? "text-blue-500" : "text-gray-500"}`}>
+                  {d}
+                </div>
+              ))}
+            </div>
+            {/* 日付グリッド */}
+            <div className="grid grid-cols-7">
+              {/* 月初の空白 */}
+              {Array.from({ length: firstDayOfWeek }).map((_, i) => (
+                <div key={"empty-" + i} className="h-16 border-b border-r border-gray-50" />
+              ))}
+              {/* 各日 */}
+              {Array.from({ length: daysInMonth }).map((_, i) => {
+                const day = i + 1;
+                const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                const isToday = dateStr === today;
+                const attendCount = attendanceByDate[dateStr] ?? 0;
+                const absenceCount = absenceByDate[dateStr] ?? 0;
+                const dayOfWeek = (firstDayOfWeek + i) % 7;
+
+                return (
+                  <div
+                    key={day}
+                    className={`h-16 border-b border-r border-gray-50 p-1 flex flex-col ${isToday ? "bg-brand-50" : ""}`}
+                  >
+                    <span className={`text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full ${
+                      isToday ? "bg-brand-600 text-white" :
+                      dayOfWeek === 0 ? "text-red-500" :
+                      dayOfWeek === 6 ? "text-blue-500" : "text-gray-700"
+                    }`}>
+                      {day}
+                    </span>
+                    <div className="flex flex-col gap-0.5 mt-0.5">
+                      {attendCount > 0 && (
+                        <span className="text-[10px] bg-brand-100 text-brand-700 rounded px-1 leading-4 font-bold">
+                          出席 {attendCount}名
+                        </span>
+                      )}
+                      {absenceCount > 0 && (
+                        <span className="text-[10px] bg-orange-100 text-orange-700 rounded px-1 leading-4 font-bold">
+                          欠席 {absenceCount}件
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* ── 本日の出席 ── */}
         <section>
           <h2 className="text-sm font-bold text-gray-500 mb-3 px-1">
             📅 本日の出席 ({today})
@@ -111,7 +212,7 @@ export default async function AdminAttendancePage() {
           )}
         </section>
 
-        {/* 未確認の欠席連絡 */}
+        {/* ── 未確認の欠席連絡 ── */}
         <section>
           <h2 className="text-sm font-bold text-gray-500 mb-3 px-1">
             ⚠️ 未確認の欠席連絡
@@ -135,9 +236,7 @@ export default async function AdminAttendancePage() {
                             {req.type === "absent" ? "欠席" : "遅刻"}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-700 mt-1">
-                          📅 {req.absence_date}
-                        </p>
+                        <p className="text-sm text-gray-700 mt-1">📅 {req.absence_date}</p>
                         {req.reason && (
                           <p className="text-sm text-gray-500 mt-1">理由: {req.reason}</p>
                         )}
@@ -164,7 +263,7 @@ export default async function AdminAttendancePage() {
           )}
         </section>
 
-        {/* 確認済みの欠席連絡（直近） */}
+        {/* ── 確認済みの欠席連絡 ── */}
         <section>
           <h2 className="text-sm font-bold text-gray-500 mb-3 px-1">📁 確認済み欠席連絡（直近7件）</h2>
           {confirmedAbsences && confirmedAbsences.length > 0 ? (
