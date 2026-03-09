@@ -18,14 +18,28 @@ export default async function ParentDashboard() {
 
   if (profile?.role !== "parent") redirect("/");
 
-  // 紐づいた生徒を取得（ユーザー名付き）
+  // 紐づいた生徒IDを取得
   const { data: links } = await supabase
     .from("parent_student_links")
-    .select("student_user_id, users!parent_student_links_student_user_id_fkey(id, full_name)")
+    .select("student_user_id")
     .eq("parent_user_id", user.id);
 
-  // 各生徒のゲーミフィケーション統計を取得
   const studentIds = (links ?? []).map((l) => l.student_user_id);
+
+  // 生徒名を別クエリで取得（RLS JOIN回避）
+  const { data: studentProfiles } = studentIds.length > 0
+    ? await supabase
+        .from("users")
+        .select("id, full_name")
+        .in("id", studentIds)
+    : { data: [] };
+
+  const namesMap: Record<string, string> = {};
+  for (const p of studentProfiles ?? []) {
+    namesMap[p.id] = p.full_name ?? "—";
+  }
+
+  // 各生徒のゲーミフィケーション統計を取得
   const { data: statsRows } = studentIds.length > 0
     ? await supabase
         .from("gamification_stats")
@@ -36,14 +50,6 @@ export default async function ParentDashboard() {
   const statsMap: Record<string, { total_days: number; current_streak: number }> = {};
   for (const s of statsRows ?? []) {
     statsMap[s.student_user_id] = s;
-  }
-
-  // ヘルパー：Supabase JOIN は配列で返ることがあるので両対応
-  function getName(usersField: unknown): string {
-    if (Array.isArray(usersField)) {
-      return (usersField[0] as { full_name?: string })?.full_name ?? "—";
-    }
-    return (usersField as { full_name?: string } | null)?.full_name ?? "—";
   }
 
   const navItems = [
@@ -80,7 +86,7 @@ export default async function ParentDashboard() {
           {links && links.length > 0 ? (
             <div className="space-y-3">
               {links.map((link) => {
-                const name = getName(link.users);
+                const name = namesMap[link.student_user_id] ?? "—";
                 const stats = statsMap[link.student_user_id];
                 return (
                   <div key={link.student_user_id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center justify-between">

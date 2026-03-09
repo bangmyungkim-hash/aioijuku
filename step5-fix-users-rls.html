@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Step 5: users テーブル RLS ポリシー追加</title>
+<style>
+  body { font-family: -apple-system, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; background: #f9fafb; color: #1f2937; }
+  h1 { color: #1d4ed8; border-bottom: 2px solid #1d4ed8; padding-bottom: 8px; }
+  h2 { color: #374151; margin-top: 32px; }
+  .card { background: white; border-radius: 12px; padding: 24px; margin: 16px 0; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+  .step { display: flex; gap: 12px; align-items: flex-start; margin: 12px 0; }
+  .step-num { background: #1d4ed8; color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; }
+  pre { background: #1e293b; color: #e2e8f0; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px; line-height: 1.6; }
+  .note { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 4px; margin: 12px 0; }
+  .success { background: #d1fae5; border-left: 4px solid #10b981; padding: 12px 16px; border-radius: 4px; margin: 12px 0; }
+  a { color: #1d4ed8; }
+</style>
+</head>
+<body>
+<h1>Step 5: 保護者が生徒名を参照できるよう RLS を修正</h1>
+
+<div class="card">
+  <h2>問題の原因</h2>
+  <p><code>users</code> テーブルの RLS（Row Level Security）が有効になっており、現状は <strong>自分のレコードしか参照できない</strong> ポリシーになっています。</p>
+  <p>そのため、保護者ログイン時に紐づいた生徒の名前を取得しようとしても <code>null</code> が返り、「—」と表示されてしまいます。</p>
+</div>
+
+<div class="card">
+  <h2>Supabase で実行する SQL</h2>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div>
+      <strong><a href="https://supabase.com/dashboard" target="_blank">supabase.com/dashboard</a> を開く</strong><br>
+      あいおい塾プロジェクト → 左メニュー「SQL Editor」をクリック
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">2</div>
+    <div>
+      <strong>以下の SQL を貼り付けて「Run」を押す</strong>
+    </div>
+  </div>
+
+  <pre>-- ① 既存の users SELECT ポリシーを確認・削除（存在する場合）
+-- （既にポリシーがある場合は名前を確認して削除してください）
+
+-- ② users テーブルの新しい RLS ポリシーを追加
+-- 自分自身 OR 管理者 OR 紐づいた保護者・生徒が参照可能
+
+CREATE POLICY "users_select_policy"
+  ON public.users
+  FOR SELECT
+  USING (
+    -- 自分自身
+    id = auth.uid()
+    -- 管理者
+    OR public.my_role() = 'admin'
+    -- 保護者として紐づいた生徒のプロフィールを参照可
+    OR EXISTS (
+      SELECT 1 FROM public.parent_student_links
+      WHERE parent_user_id = auth.uid()
+        AND student_user_id = public.users.id
+    )
+    -- 生徒として紐づいた保護者のプロフィールを参照可
+    OR EXISTS (
+      SELECT 1 FROM public.parent_student_links
+      WHERE student_user_id = auth.uid()
+        AND parent_user_id = public.users.id
+    )
+  );</pre>
+
+  <div class="note">
+    ⚠️ <strong>注意：</strong> 既に <code>users</code> テーブルに SELECT ポリシーが存在する場合は、先に削除してから実行してください。<br>
+    確認方法: Supabase ダッシュボード → Table Editor → users → Policies タブ
+  </div>
+</div>
+
+<div class="card">
+  <h2>既存ポリシーがある場合の対処</h2>
+  <p>既存ポリシーが「自分のみ参照可」のような名前で存在する場合、まず削除します：</p>
+  <pre>-- 既存ポリシーの削除（名前は実際のものに合わせてください）
+DROP POLICY IF EXISTS "Users can view own profile." ON public.users;
+DROP POLICY IF EXISTS "ユーザーは自分のプロフィールを参照可" ON public.users;
+
+-- その後、上記の新しいポリシーを実行</pre>
+</div>
+
+<div class="card">
+  <h2>確認方法</h2>
+  <div class="step">
+    <div class="step-num">1</div>
+    <div>SQL 実行後、<a href="https://aioijuku.vercel.app/parent/dashboard" target="_blank">保護者ダッシュボード</a> を開いてリロード</div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div>「お子様の状況」に生徒の名前（例: 山田 太郎）が表示されていれば成功</div>
+  </div>
+  <div class="success">
+    ✅ 名前が表示されれば完了です！
+  </div>
+</div>
+
+</body>
+</html>
