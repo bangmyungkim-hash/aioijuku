@@ -35,43 +35,45 @@ export default async function AdminDashboard() {
     .eq("is_active", true);
 
   return (
-    <div className="min-h-screen bg-brand-50">
-      <header className="bg-purple-700 text-white px-4 py-4 flex items-center justify-between shadow-md">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">🌱</span>
-          <span className="font-extrabold text-lg">あいおい塾 管理画面</span>
+    <div className="min-h-screen" style={{ background: "linear-gradient(180deg, #060b18 0%, #0c1425 100%)" }}>
+      <header className="header-dark">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-white"
+               style={{ background: "linear-gradient(135deg, #d4a843, #b8912e)" }}>A</div>
+          <span className="font-semibold text-slate-100 tracking-tight">あいおい塾</span>
+          <span className="text-xs text-slate-600 border border-slate-700 px-2 py-0.5 rounded">管理</span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-sm opacity-90">{profile?.full_name}</span>
+          <span className="text-sm text-slate-400">{profile?.full_name}</span>
           <form action="/api/auth/logout" method="POST">
             <button type="submit"
-              className="text-xs bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-3 py-1.5 rounded-lg transition-colors">
+              className="text-xs text-slate-500 hover:text-slate-300 border border-slate-700 hover:border-slate-600 px-3 py-1.5 rounded-lg transition-all">
               ログアウト
             </button>
           </form>
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-3xl mx-auto px-4 py-8 space-y-8">
 
         {/* サマリーカード */}
         <div className="grid grid-cols-3 gap-3">
-          <SummaryCard label="本日の出席" value={todayAttendance ?? 0} unit="名" color="green" />
-          <SummaryCard label="未確認欠席連絡" value={pendingAbsences ?? 0} unit="件" color="orange" />
-          <SummaryCard label="在籍生徒数" value={studentCount ?? 0} unit="名" color="purple" />
+          <SummaryCard label="本日の出席" value={todayAttendance ?? 0} unit="名" accent="emerald" />
+          <SummaryCard label="未確認欠席連絡" value={pendingAbsences ?? 0} unit="件" accent="amber" />
+          <SummaryCard label="在籍生徒数" value={studentCount ?? 0} unit="名" accent="violet" />
         </div>
 
         {/* 管理メニュー */}
         <div>
-          <h2 className="text-sm font-bold text-gray-500 mb-3 px-1">🛠 管理メニュー</h2>
+          <h2 className="section-title">管理メニュー</h2>
           <div className="grid grid-cols-2 gap-3">
-            <AdminNavCard href="/admin/members"    icon="👥" label="会員管理"       desc="生徒・保護者の登録・編集" />
-            <AdminNavCard href="/admin/attendance" icon="📋" label="出欠管理"       desc="出欠状況・欠席連絡の確認" />
-            <AdminNavCard href="/admin/qrcode"     icon="📷" label="QRコード生成"  desc="教室用QRコードの発行" />
-            <AdminNavCard href="/admin/grades"     icon="📊" label="成績管理"       desc="テスト・模試データ" />
-            <AdminNavCard href="/admin/meetings"   icon="🗒️" label="面談記録"       desc="面談メモの記録・管理" />
-            <AdminNavCard href="/admin/calendar"   icon="📅" label="カレンダー管理" desc="休校日・イベントの設定" />
-            <AdminNavCard href="/admin/announce"   icon="📢" label="お知らせ管理"   desc="お知らせの投稿・編集" />
+            <AdminNavCard href="/admin/members"    label="会員管理"       desc="生徒・保護者の登録・編集" />
+            <AdminNavCard href="/admin/attendance" label="出欠管理"       desc="出欠状況・欠席連絡の確認" />
+            <AdminNavCard href="/admin/qrcode"     label="QRコード生成"  desc="教室用QRコードの発行" />
+            <AdminNavCard href="/admin/grades"     label="成績管理"       desc="テスト・模試データ" />
+            <AdminNavCard href="/admin/meetings"   label="面談記録"       desc="面談メモの記録・管理" />
+            <AdminNavCard href="/admin/calendar"   label="カレンダー管理" desc="休校日・イベントの設定" />
+            <AdminNavCard href="/admin/announce"   label="お知らせ管理"   desc="お知らせの投稿・編集" />
           </div>
         </div>
 
@@ -81,36 +83,37 @@ export default async function AdminDashboard() {
 }
 
 function SummaryCard({
-  label, value, unit, color,
+  label, value, unit, accent,
 }: {
   label: string; value: number; unit: string;
-  color: "green" | "orange" | "purple";
+  accent: "emerald" | "amber" | "violet";
 }) {
-  const colorMap = {
-    green:  "bg-brand-100 text-brand-700",
-    orange: "bg-orange-100 text-orange-700",
-    purple: "bg-purple-100 text-purple-700",
+  const accentMap = {
+    emerald: { text: "text-emerald-400", border: "border-emerald-500/20" },
+    amber:   { text: "text-amber-400",   border: "border-amber-500/20" },
+    violet:  { text: "text-violet-400",  border: "border-violet-500/20" },
   };
+  const a = accentMap[accent];
   return (
-    <div className={`rounded-2xl p-4 text-center ${colorMap[color]}`}>
-      <div className="text-3xl font-extrabold">{value}</div>
-      <div className="text-xs font-bold mt-0.5">{unit}</div>
-      <div className="text-xs opacity-70 mt-1 leading-tight">{label}</div>
+    <div className={`stat-card ${a.border} border`}>
+      <div className={`text-3xl font-bold ${a.text}`}>{value}</div>
+      <div className="text-xs font-medium text-slate-500 mt-0.5">{unit}</div>
+      <div className="text-xs text-slate-600 mt-1 leading-tight">{label}</div>
     </div>
   );
 }
 
 function AdminNavCard({
-  href, icon, label, desc,
+  href, label, desc,
 }: {
-  href: string; icon: string; label: string; desc: string;
+  href: string; label: string; desc: string;
 }) {
   return (
-    <a href={href} className="card flex items-start gap-3 hover:bg-purple-50 transition-colors">
-      <span className="text-2xl mt-0.5">{icon}</span>
+    <a href={href} className="card flex items-start gap-3 hover:border-amber-500/20 transition-all group">
+      <span className="w-1.5 h-1.5 rounded-full bg-amber-500/40 group-hover:bg-amber-500 transition-colors mt-2" />
       <div>
-        <p className="font-bold text-gray-800">{label}</p>
-        <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
+        <p className="font-medium text-slate-200 group-hover:text-slate-100 transition-colors">{label}</p>
+        <p className="text-xs text-slate-500 mt-0.5">{desc}</p>
       </div>
     </a>
   );

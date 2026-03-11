@@ -2,7 +2,6 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
-// 成績を登録するサーバーアクション
 async function addExamResult(formData: FormData) {
   "use server";
   const studentId = formData.get("student_id") as string;
@@ -15,13 +14,7 @@ async function addExamResult(formData: FormData) {
 
   const supabase = await createClient();
   await supabase.from("exam_results").upsert(
-    {
-      student_user_id: studentId,
-      exam_id: examId,
-      subject,
-      score,
-      max_score: maxScore,
-    },
+    { student_user_id: studentId, exam_id: examId, subject, score, max_score: maxScore },
     { onConflict: "student_user_id,exam_id,subject" }
   );
   revalidatePath("/admin/grades");
@@ -40,13 +33,11 @@ export default async function AdminGradesPage() {
 
   if (profile?.role !== "admin") redirect("/");
 
-  // 試験マスタ
   const { data: exams } = await supabase
     .from("exams")
     .select("id, name, type, exam_date")
     .order("exam_date", { ascending: false });
 
-  // 生徒一覧
   const { data: students } = await supabase
     .from("users")
     .select("id, full_name")
@@ -54,50 +45,41 @@ export default async function AdminGradesPage() {
     .eq("is_active", true)
     .order("full_name");
 
-  // 成績データ（直近）
   const { data: results } = await supabase
     .from("exam_results")
     .select("id, student_user_id, exam_id, subject, score, max_score, users!exam_results_student_user_id_fkey(full_name), exams!exam_results_exam_id_fkey(name, exam_date, type)")
     .order("created_at", { ascending: false })
     .limit(50);
 
-  const examTypeLabel: Record<string, string> = {
-    school_test: "定期テスト",
-    mock_exam: "模擬試験",
-  };
+  const examTypeLabel: Record<string, string> = { school_test: "定期テスト", mock_exam: "模擬試験" };
 
   return (
-    <div className="min-h-screen bg-brand-50">
-      <header className="bg-purple-700 text-white px-4 py-4 flex items-center justify-between shadow-md">
+    <div className="min-h-screen" style={{ background: "linear-gradient(180deg, #060b18 0%, #0c1425 100%)" }}>
+      <header className="header-dark">
         <div className="flex items-center gap-3">
-          <a href="/admin/dashboard" className="text-white opacity-70 hover:opacity-100 text-sm">← ダッシュボード</a>
-          <span className="opacity-40">|</span>
-          <span className="font-extrabold">📊 成績管理</span>
+          <a href="/admin/dashboard" className="text-slate-500 hover:text-slate-300 text-sm transition-colors">← ダッシュボード</a>
+          <span className="text-slate-700">|</span>
+          <span className="font-semibold text-slate-100">成績管理</span>
         </div>
-        <span className="text-sm opacity-80">{profile?.full_name}</span>
+        <span className="text-sm text-slate-400">{profile?.full_name}</span>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-3xl mx-auto px-4 py-8 space-y-8">
 
-        {/* 成績入力フォーム */}
         <div className="card">
-          <h2 className="font-bold text-gray-700 mb-4">📝 成績を入力</h2>
+          <h2 className="font-semibold text-slate-200 mb-4">成績を入力</h2>
           <form action={addExamResult} className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-gray-500 font-bold mb-1 block">生徒</label>
-                <select name="student_id" required
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400">
+                <label className="text-xs text-slate-500 font-medium mb-1 block">生徒</label>
+                <select name="student_id" required className="form-dark">
                   <option value="">選択してください</option>
-                  {students?.map((s) => (
-                    <option key={s.id} value={s.id}>{s.full_name}</option>
-                  ))}
+                  {students?.map((s) => <option key={s.id} value={s.id}>{s.full_name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-xs text-gray-500 font-bold mb-1 block">試験</label>
-                <select name="exam_id" required
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400">
+                <label className="text-xs text-slate-500 font-medium mb-1 block">試験</label>
+                <select name="exam_id" required className="form-dark">
                   <option value="">選択してください</option>
                   {exams?.map((e) => (
                     <option key={e.id} value={e.id}>
@@ -109,25 +91,19 @@ export default async function AdminGradesPage() {
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="text-xs text-gray-500 font-bold mb-1 block">科目</label>
-                <select name="subject" required
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400">
+                <label className="text-xs text-slate-500 font-medium mb-1 block">科目</label>
+                <select name="subject" required className="form-dark">
                   <option value="">選択</option>
-                  {["国語", "数学", "英語", "理科", "社会", "その他"].map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
+                  {["国語", "数学", "英語", "理科", "社会", "その他"].map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-xs text-gray-500 font-bold mb-1 block">得点</label>
-                <input type="number" name="score" min={0} max={1000} required
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
-                  placeholder="例: 78" />
+                <label className="text-xs text-slate-500 font-medium mb-1 block">得点</label>
+                <input type="number" name="score" min={0} max={1000} required className="form-dark" placeholder="例: 78" />
               </div>
               <div>
-                <label className="text-xs text-gray-500 font-bold mb-1 block">満点</label>
-                <input type="number" name="max_score" min={1} defaultValue={100}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
+                <label className="text-xs text-slate-500 font-medium mb-1 block">満点</label>
+                <input type="number" name="max_score" min={1} defaultValue={100} className="form-dark" />
               </div>
             </div>
             <div className="flex justify-end">
@@ -136,15 +112,14 @@ export default async function AdminGradesPage() {
           </form>
 
           {!exams || exams.length === 0 ? (
-            <div className="mt-3 p-3 bg-yellow-50 rounded-lg text-sm text-yellow-700">
-              ⚠️ 試験マスタが登録されていません。Supabase の SQL Editor で exams テーブルに試験を追加してください。
+            <div className="mt-3 p-3 rounded-lg text-sm text-amber-400" style={{ background: "rgba(245, 158, 11, 0.05)", border: "1px solid rgba(245, 158, 11, 0.1)" }}>
+              試験マスタが登録されていません。Supabase の SQL Editor で exams テーブルに試験を追加してください。
             </div>
           ) : null}
         </div>
 
-        {/* 成績一覧 */}
         <section>
-          <h2 className="text-sm font-bold text-gray-500 mb-3 px-1">📋 成績一覧（直近50件）</h2>
+          <h2 className="section-title">成績一覧（直近50件）</h2>
           {results && results.length > 0 ? (
             <div className="space-y-2">
               {results.map((r) => {
@@ -155,29 +130,29 @@ export default async function AdminGradesPage() {
                   <div key={r.id} className="card">
                     <div className="flex items-center justify-between">
                       <div>
-                        <span className="font-bold text-gray-800">{studentName}</span>
-                        <span className="mx-2 text-gray-300">|</span>
-                        <span className="text-sm text-gray-600">{exam?.name ?? "—"}</span>
-                        <span className="mx-2 text-gray-300">|</span>
-                        <span className="text-sm text-gray-600">{r.subject}</span>
+                        <span className="font-medium text-slate-100">{studentName}</span>
+                        <span className="mx-2 text-slate-700">|</span>
+                        <span className="text-sm text-slate-400">{exam?.name ?? "—"}</span>
+                        <span className="mx-2 text-slate-700">|</span>
+                        <span className="text-sm text-slate-400">{r.subject}</span>
                       </div>
                       <div className="text-right">
-                        <span className="font-extrabold text-xl text-gray-800">{r.score}</span>
-                        <span className="text-xs text-gray-400">/{r.max_score}</span>
-                        <span className={`ml-2 text-sm font-bold ${pct >= 80 ? "text-brand-600" : pct >= 60 ? "text-orange-500" : "text-red-500"}`}>
+                        <span className="font-bold text-xl text-slate-100">{r.score}</span>
+                        <span className="text-xs text-slate-600">/{r.max_score}</span>
+                        <span className={`ml-2 text-sm font-semibold ${pct >= 80 ? "text-emerald-400" : pct >= 60 ? "text-amber-400" : "text-rose-400"}`}>
                           ({pct}%)
                         </span>
                       </div>
                     </div>
                     {exam?.exam_date && (
-                      <p className="text-xs text-gray-400 mt-0.5">{exam.exam_date} — {examTypeLabel[exam.type] ?? exam.type}</p>
+                      <p className="text-xs text-slate-600 mt-0.5">{exam.exam_date} — {examTypeLabel[exam.type] ?? exam.type}</p>
                     )}
                   </div>
                 );
               })}
             </div>
           ) : (
-            <div className="card text-center text-gray-400 py-10">
+            <div className="card text-center text-slate-600 py-10">
               成績データがありません。<br />上のフォームから入力してください。
             </div>
           )}

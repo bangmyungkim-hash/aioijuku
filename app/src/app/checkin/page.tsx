@@ -1,11 +1,5 @@
 "use client";
 
-/**
- * /checkin?token=xxxx
- * QRコードスキャン後の入退室処理ページ
- * 1回目スキャン → 入室記録
- * 2回目スキャン → 退室記録
- */
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -33,16 +27,12 @@ function CheckinContent() {
 
   async function processCheckin() {
     const supabase = createClient();
-
-    // ログイン確認
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      // ログインページへ（チェックイン後に戻れるようreturnUrlを付与）
       router.push("/login?returnUrl=" + encodeURIComponent("/checkin?token=" + token));
       return;
     }
 
-    // ロール確認（生徒のみ）
     const { data: profile } = await supabase
       .from("users")
       .select("full_name, role")
@@ -57,7 +47,6 @@ function CheckinContent() {
 
     setStudentName(profile?.full_name ?? "");
 
-    // チェックイン RPC 呼び出し
     const { data, error } = await supabase.rpc("checkin_by_qr", {
       p_token: token,
       p_student_id: user.id,
@@ -89,14 +78,12 @@ function CheckinContent() {
     setStatus(data.action === "check_in" ? "check_in" : "check_out");
   }
 
-  // ── 描画 ──
-
   if (status === "loading") {
     return (
-      <div className="min-h-screen bg-brand-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "#060b18" }}>
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-brand-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">処理中...</p>
+          <div className="w-16 h-16 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-slate-400 text-lg">処理中...</p>
         </div>
       </div>
     );
@@ -104,11 +91,10 @@ function CheckinContent() {
 
   if (status === "no_token") {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-sm w-full text-center">
-          <div className="text-5xl mb-4">❓</div>
-          <h1 className="text-xl font-bold text-gray-800 mb-2">QRコードが認識できません</h1>
-          <p className="text-gray-500 text-sm">教室に設置されたQRコードをスキャンしてください。</p>
+      <div className="min-h-screen flex items-center justify-center p-6" style={{ background: "#060b18" }}>
+        <div className="card p-8 max-w-sm w-full text-center">
+          <h1 className="text-xl font-semibold text-slate-100 mb-2">QRコードが認識できません</h1>
+          <p className="text-slate-500 text-sm">教室に設置されたQRコードをスキャンしてください。</p>
         </div>
       </div>
     );
@@ -116,14 +102,13 @@ function CheckinContent() {
 
   if (status === "error") {
     return (
-      <div className="min-h-screen bg-red-50 flex items-center justify-center p-6">
-        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-sm w-full text-center">
-          <div className="text-5xl mb-4">⚠️</div>
-          <h1 className="text-xl font-bold text-red-700 mb-2">エラー</h1>
-          <p className="text-gray-600 text-sm mb-6">{errorMessage}</p>
+      <div className="min-h-screen flex items-center justify-center p-6" style={{ background: "#060b18" }}>
+        <div className="card p-8 max-w-sm w-full text-center">
+          <h1 className="text-xl font-semibold text-rose-400 mb-2">エラー</h1>
+          <p className="text-slate-400 text-sm mb-6">{errorMessage}</p>
           <button
             onClick={() => router.push("/student/dashboard")}
-            className="w-full bg-brand-600 text-white py-3 rounded-xl font-bold hover:bg-brand-700 transition"
+            className="btn-primary w-full py-3"
           >
             ダッシュボードに戻る
           </button>
@@ -135,43 +120,50 @@ function CheckinContent() {
   const isCheckIn = status === "check_in";
 
   return (
-    <div className={`min-h-screen flex items-center justify-center p-6 ${isCheckIn ? "bg-brand-50" : "bg-blue-50"}`}>
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full text-center">
+    <div className="min-h-screen flex items-center justify-center p-6" style={{ background: "#060b18" }}>
+      <div className="card p-8 max-w-sm w-full text-center">
         {/* アイコン */}
-        <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 ${isCheckIn ? "bg-brand-100" : "bg-blue-100"}`}>
-          <span className="text-5xl">{isCheckIn ? "🏫" : "🏠"}</span>
+        <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6`}
+             style={{
+               background: isCheckIn ? "rgba(212, 168, 67, 0.1)" : "rgba(56, 189, 248, 0.1)",
+               border: `1px solid ${isCheckIn ? "rgba(212, 168, 67, 0.2)" : "rgba(56, 189, 248, 0.2)"}`,
+             }}>
+          <span className={`text-4xl font-bold ${isCheckIn ? "text-amber-400" : "text-sky-400"}`}>
+            {isCheckIn ? "IN" : "OUT"}
+          </span>
         </div>
 
-        {/* メッセージ */}
-        <h1 className={`text-3xl font-bold mb-2 ${isCheckIn ? "text-brand-700" : "text-blue-700"}`}>
+        <h1 className={`text-2xl font-bold mb-2 ${isCheckIn ? "text-amber-400" : "text-sky-400"}`}>
           {isCheckIn ? "入室しました" : "退室しました"}
         </h1>
 
         {studentName && (
-          <p className="text-gray-700 font-medium text-lg mb-1">{studentName} さん</p>
+          <p className="text-slate-300 font-medium text-lg mb-1">{studentName} さん</p>
         )}
 
-        <p className="text-gray-500 text-sm mb-6">
-          {isCheckIn ? "今日もがんばろう！" : "お疲れさまでした！"}
+        <p className="text-slate-500 text-sm mb-6">
+          {isCheckIn ? "今日もがんばろう" : "お疲れさまでした"}
         </p>
 
         {/* 時刻 */}
-        <div className={`rounded-xl py-4 mb-6 ${isCheckIn ? "bg-brand-50" : "bg-blue-50"}`}>
-          <p className="text-xs text-gray-500 mb-1">記録時刻</p>
-          <p className={`text-3xl font-bold ${isCheckIn ? "text-brand-600" : "text-blue-600"}`}>{time}</p>
+        <div className="rounded-xl py-4 mb-6" style={{
+          background: isCheckIn ? "rgba(212, 168, 67, 0.05)" : "rgba(56, 189, 248, 0.05)",
+          border: `1px solid ${isCheckIn ? "rgba(212, 168, 67, 0.1)" : "rgba(56, 189, 248, 0.1)"}`,
+        }}>
+          <p className="text-xs text-slate-600 mb-1">記録時刻</p>
+          <p className={`text-3xl font-bold ${isCheckIn ? "text-amber-400" : "text-sky-400"}`}>{time}</p>
         </div>
 
-        {/* ボタン */}
         <button
           onClick={() => router.push("/student/dashboard")}
-          className={`w-full py-3 rounded-xl font-bold text-white transition ${isCheckIn ? "bg-brand-600 hover:bg-brand-700" : "bg-blue-600 hover:bg-blue-700"}`}
+          className="btn-primary w-full py-3"
         >
           ダッシュボードへ
         </button>
 
         <button
           onClick={() => router.push("/student/learning")}
-          className="w-full mt-3 py-3 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition"
+          className="w-full mt-3 py-3 rounded-xl font-medium text-slate-400 border border-slate-700 hover:border-slate-600 hover:text-slate-300 transition-all"
         >
           学習を記録する
         </button>
@@ -183,8 +175,8 @@ function CheckinContent() {
 export default function CheckinPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-brand-50 flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-brand-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "#060b18" }}>
+        <div className="w-16 h-16 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
       </div>
     }>
       <CheckinContent />

@@ -30,23 +30,29 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-brand-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
+         style={{ background: "linear-gradient(145deg, #060b18 0%, #0c1425 50%, #0a1020 100%)" }}>
+      {/* 背景装飾 */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full opacity-[0.03]"
+           style={{ background: "radial-gradient(circle, #d4a843 0%, transparent 70%)" }} />
+
+      <div className="w-full max-w-sm relative z-10">
 
         {/* ロゴ・タイトル */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-brand-600 rounded-2xl mb-4 shadow-md">
-            <span className="text-3xl">🌱</span>
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-5"
+               style={{ background: "linear-gradient(135deg, #d4a843, #b8912e)", boxShadow: "0 4px 24px rgba(212, 168, 67, 0.3)" }}>
+            <span className="text-3xl font-bold text-white tracking-tight" style={{ fontFamily: "Inter, sans-serif" }}>A</span>
           </div>
-          <h1 className="text-2xl font-extrabold text-gray-800">あいおい塾</h1>
-          <p className="text-sm text-gray-500 mt-1">会員サイトへようこそ</p>
+          <h1 className="text-2xl font-bold text-slate-100 tracking-tight">あいおい塾</h1>
+          <p className="text-sm text-slate-500 mt-1.5 tracking-wide">会員サイトへようこそ</p>
         </div>
 
         {/* ログインフォーム */}
         <div className="card">
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">
                 メールアドレス
               </label>
               <input
@@ -61,7 +67,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">
                 パスワード
               </label>
               <input
@@ -77,14 +83,15 @@ export default function LoginPage() {
 
             {/* エラーメッセージ */}
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600">
+              <div className="rounded-lg px-4 py-3 text-sm text-rose-400"
+                   style={{ background: "rgba(244, 63, 94, 0.08)", border: "1px solid rgba(244, 63, 94, 0.15)" }}>
                 {error}
               </div>
             )}
 
             <button
               type="submit"
-              className="btn-primary w-full mt-2"
+              className="btn-primary w-full mt-2 py-3"
               disabled={loading}
             >
               {loading ? "ログイン中…" : "ログイン"}
@@ -92,7 +99,7 @@ export default function LoginPage() {
           </form>
         </div>
 
-        <p className="text-center text-xs text-gray-400 mt-6">
+        <p className="text-center text-xs text-slate-600 mt-8">
           アカウントをお持ちでない方は<br />
           塾の先生にお問い合わせください。
         </p>
