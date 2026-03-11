@@ -7,28 +7,21 @@ export default async function AdminMembersPage() {
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase
-    .from("users")
-    .select("full_name, role")
-    .eq("id", user.id)
-    .single();
-
+    .from("users").select("full_name, role").eq("id", user.id).single();
   if (profile?.role !== "admin") redirect("/");
 
   const { data: students } = await supabase
     .from("users")
     .select("id, full_name, email, is_active, created_at, student_profiles(grade, school_name)")
-    .eq("role", "student")
-    .order("created_at", { ascending: false });
+    .eq("role", "student").order("created_at", { ascending: false });
 
   const { data: parents } = await supabase
     .from("users")
     .select("id, full_name, email, is_active, created_at")
-    .eq("role", "parent")
-    .order("created_at", { ascending: false });
+    .eq("role", "parent").order("created_at", { ascending: false });
 
   const { data: links } = await supabase
-    .from("parent_student_links")
-    .select("parent_user_id, student_user_id");
+    .from("parent_student_links").select("parent_user_id, student_user_id");
 
   const studentParentMap: Record<string, string[]> = {};
   const parentStudentMap: Record<string, string[]> = {};
@@ -45,21 +38,30 @@ export default async function AdminMembersPage() {
   students?.forEach((s) => { studentMap[s.id] = s.full_name; });
 
   return (
-    <div className="min-h-screen" style={{ background: "linear-gradient(180deg, #060b18 0%, #0c1425 100%)" }}>
+    <div className="min-h-screen" style={{ background: "var(--bg-primary)" }}>
       <header className="header-dark">
         <div className="flex items-center gap-3">
-          <a href="/admin/dashboard" className="text-slate-500 hover:text-slate-300 text-sm transition-colors">← ダッシュボード</a>
-          <span className="text-slate-700">|</span>
-          <span className="font-semibold text-slate-100">会員管理</span>
+          <a href="/admin/dashboard" className="text-sm transition-colors"
+             style={{ color: "rgba(255,255,255,0.4)" }}>← ダッシュボード</a>
+          <span style={{ color: "rgba(255,255,255,0.15)" }}>|</span>
+          <span className="font-semibold" style={{ color: "rgba(255,255,255,0.9)" }}>会員管理</span>
         </div>
-        <span className="text-sm text-slate-400">{profile?.full_name}</span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>{profile?.full_name}</span>
+          <form action="/api/auth/logout" method="POST">
+            <button type="submit" className="text-xs px-3 py-1.5 rounded-lg transition-all"
+              style={{ color: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.15)" }}>
+              ログアウト
+            </button>
+          </form>
+        </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
 
-        <div className="card" style={{ borderColor: "rgba(212, 168, 67, 0.15)" }}>
-          <p className="text-sm text-amber-400 font-semibold">新しい会員を追加するには</p>
-          <p className="text-sm text-slate-400 mt-1">
+        <div className="card" style={{ borderColor: "rgba(184,135,42,0.4)" }}>
+          <p className="text-sm font-semibold text-amber-700">新しい会員を追加するには</p>
+          <p className="text-sm text-stone-600 mt-1">
             Supabase ダッシュボード → Authentication → Users → 「Add user」から作成してください。
             作成後、SQL Editor で role・full_name を設定します。
           </p>
@@ -76,32 +78,32 @@ export default async function AdminMembersPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-slate-100">{s.full_name}</span>
+                        <span className="font-medium text-stone-800">{s.full_name}</span>
                         {s.is_active ? (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">在籍</span>
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">在籍</span>
                         ) : (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-500">退塾</span>
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-stone-100 text-stone-500">退塾</span>
                         )}
                       </div>
-                      <p className="text-sm text-slate-500 mt-0.5">{s.email}</p>
-                      <div className="flex gap-4 mt-1 text-xs text-slate-600">
+                      <p className="text-sm text-stone-500 mt-0.5">{s.email}</p>
+                      <div className="flex gap-4 mt-1 text-xs text-stone-400">
                         {sprof?.grade && <span>{sprof.grade}</span>}
                         {sprof?.school_name && <span>{sprof.school_name}</span>}
                       </div>
                       {parentIds.length > 0 && (
-                        <p className="text-xs text-sky-400/80 mt-1">
+                        <p className="text-xs text-sky-700 mt-1">
                           保護者: {parentIds.map((pid) => parentMap[pid] ?? pid).join("、")}
                         </p>
                       )}
                     </div>
-                    <div className="text-xs text-slate-600 whitespace-nowrap">
+                    <div className="text-xs text-stone-400 whitespace-nowrap">
                       {new Date(s.created_at).toLocaleDateString("ja-JP")} 登録
                     </div>
                   </div>
                 </div>
               );
             }) : (
-              <div className="card text-center text-slate-600 py-8">生徒が登録されていません</div>
+              <div className="card text-center text-stone-400 py-8">生徒が登録されていません</div>
             )}
           </div>
         </section>
@@ -116,28 +118,28 @@ export default async function AdminMembersPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-slate-100">{p.full_name}</span>
+                        <span className="font-medium text-stone-800">{p.full_name}</span>
                         {p.is_active ? (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400">有効</span>
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700">有効</span>
                         ) : (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-500">無効</span>
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-stone-100 text-stone-500">無効</span>
                         )}
                       </div>
-                      <p className="text-sm text-slate-500 mt-0.5">{p.email}</p>
+                      <p className="text-sm text-stone-500 mt-0.5">{p.email}</p>
                       {sIds.length > 0 && (
-                        <p className="text-xs text-emerald-400/80 mt-1">
+                        <p className="text-xs text-emerald-700 mt-1">
                           お子様: {sIds.map((sid) => studentMap[sid] ?? sid).join("、")}
                         </p>
                       )}
                     </div>
-                    <div className="text-xs text-slate-600 whitespace-nowrap">
+                    <div className="text-xs text-stone-400 whitespace-nowrap">
                       {new Date(p.created_at).toLocaleDateString("ja-JP")} 登録
                     </div>
                   </div>
                 </div>
               );
             }) : (
-              <div className="card text-center text-slate-600 py-8">保護者が登録されていません</div>
+              <div className="card text-center text-stone-400 py-8">保護者が登録されていません</div>
             )}
           </div>
         </section>

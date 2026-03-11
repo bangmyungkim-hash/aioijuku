@@ -4,17 +4,18 @@
 
 @layer base {
   :root {
-    --bg-primary: #060b18;
-    --bg-secondary: #0c1425;
-    --bg-card: rgba(15, 23, 42, 0.7);
-    --bg-card-hover: rgba(20, 30, 52, 0.8);
-    --border-subtle: rgba(148, 163, 184, 0.1);
-    --border-accent: rgba(212, 168, 67, 0.3);
-    --accent-gold: #d4a843;
-    --accent-gold-light: #e2b95e;
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
+    --bg-primary:   #f8f5ef;
+    --bg-secondary: #f0ece3;
+    --bg-card:      #ffffff;
+    --bg-header:    #1a1610;
+    --text-primary:   #1a1610;
+    --text-secondary: #5a5040;
+    --text-muted:     #8a7a62;
+    --accent-gold:       #b8872a;
+    --accent-gold-light: #f5e6b8;
+    --border-card:   rgba(175, 140, 55, 0.32);
+    --border-subtle: rgba(0, 0, 0, 0.07);
+    --shadow-card:   0 2px 16px rgba(0, 0, 0, 0.07);
   }
 
   body {
@@ -26,101 +27,79 @@
   }
 
   ::-webkit-scrollbar { width: 5px; }
-  ::-webkit-scrollbar-track { background: var(--bg-primary); }
-  ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.15); border-radius: 100px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.25); }
+  ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+  ::-webkit-scrollbar-thumb { background: rgba(175, 140, 55, 0.25); border-radius: 100px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(175, 140, 55, 0.4); }
 }
 
 @layer components {
-  /* ── 共通ボタン ── */
   .btn-primary {
-    @apply text-white font-semibold py-2.5 px-6 rounded-lg
-           transition-all duration-200
-           disabled:opacity-40 disabled:cursor-not-allowed;
-    background: linear-gradient(135deg, #d4a843, #b8912e);
-    box-shadow: 0 2px 12px rgba(212, 168, 67, 0.25);
+    @apply text-white font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed;
+    background: linear-gradient(135deg, #c9963a, #a87825);
+    box-shadow: 0 2px 14px rgba(184, 135, 42, 0.32);
   }
   .btn-primary:hover:not(:disabled) {
-    background: linear-gradient(135deg, #e2b95e, #d4a843);
-    box-shadow: 0 4px 20px rgba(212, 168, 67, 0.35);
+    background: linear-gradient(135deg, #d4a843, #c9963a);
+    box-shadow: 0 4px 22px rgba(184, 135, 42, 0.42);
     transform: translateY(-1px);
   }
 
   .btn-secondary {
-    @apply text-slate-300 font-semibold py-2.5 px-6 rounded-lg
-           border border-slate-700 transition-all duration-200;
-    background: rgba(15, 23, 42, 0.5);
-    backdrop-filter: blur(8px);
+    @apply font-semibold py-2.5 px-6 rounded-lg border transition-all duration-200;
+    color: var(--text-secondary);
+    border-color: var(--border-card);
+    background: white;
   }
-  .btn-secondary:hover {
-    @apply border-slate-600 text-slate-100;
-    background: rgba(30, 41, 59, 0.7);
-  }
+  .btn-secondary:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
 
-  /* ── カード ── */
   .card {
     @apply rounded-xl p-5;
     background: var(--bg-card);
-    border: 1px solid var(--border-subtle);
-    backdrop-filter: blur(12px);
-    transition: border-color 0.2s, background 0.2s;
+    border: 1.5px solid var(--border-card);
+    box-shadow: var(--shadow-card);
+    transition: border-color 0.2s, box-shadow 0.2s;
   }
   .card:hover {
-    border-color: rgba(148, 163, 184, 0.15);
+    border-color: rgba(175, 140, 55, 0.55);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
   }
 
-  /* ── フォーム入力 ── */
   .input {
-    @apply w-full rounded-lg px-4 py-2.5 text-sm text-slate-100
-           transition-all duration-200;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid rgba(148, 163, 184, 0.12);
+    @apply w-full rounded-lg px-4 py-2.5 text-sm transition-all duration-200;
+    background: #ffffff;
+    border: 1.5px solid rgba(175, 140, 55, 0.28);
+    color: var(--text-primary);
   }
-  .input::placeholder {
-    @apply text-slate-500;
-  }
-  .input:focus {
-    outline: none;
-    border-color: var(--accent-gold);
-    box-shadow: 0 0 0 3px rgba(212, 168, 67, 0.1);
-  }
+  .input::placeholder { color: var(--text-muted); }
+  .input:focus { outline: none; border-color: var(--accent-gold); box-shadow: 0 0 0 3px rgba(184, 135, 42, 0.12); }
 
-  /* ── select / input 共通ダークスタイル ── */
   .form-dark {
-    @apply w-full rounded-lg px-3 py-2 text-sm text-slate-100;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid rgba(148, 163, 184, 0.12);
+    @apply w-full rounded-lg px-3 py-2 text-sm;
+    background: #ffffff;
+    border: 1.5px solid rgba(175, 140, 55, 0.28);
+    color: var(--text-primary);
   }
-  .form-dark:focus {
-    outline: none;
-    border-color: var(--accent-gold);
-    box-shadow: 0 0 0 3px rgba(212, 168, 67, 0.1);
-  }
-  .form-dark option {
-    @apply bg-slate-900 text-slate-100;
-  }
+  .form-dark:focus { outline: none; border-color: var(--accent-gold); box-shadow: 0 0 0 3px rgba(184, 135, 42, 0.12); }
+  .form-dark option { background: #ffffff; color: var(--text-primary); }
 
-  /* ── バッジ ── */
-  .badge-green  { @apply bg-emerald-500/10 text-emerald-400 text-xs font-semibold px-2.5 py-1 rounded-full; }
-  .badge-orange { @apply bg-amber-500/10 text-amber-400 text-xs font-semibold px-2.5 py-1 rounded-full; }
-  .badge-blue   { @apply bg-sky-500/10 text-sky-400 text-xs font-semibold px-2.5 py-1 rounded-full; }
-  .badge-purple { @apply bg-violet-500/10 text-violet-400 text-xs font-semibold px-2.5 py-1 rounded-full; }
+  .badge-green  { @apply bg-emerald-100 text-emerald-700 text-xs font-semibold px-2.5 py-1 rounded-full; }
+  .badge-orange { @apply bg-amber-100   text-amber-700   text-xs font-semibold px-2.5 py-1 rounded-full; }
+  .badge-blue   { @apply bg-sky-100     text-sky-700     text-xs font-semibold px-2.5 py-1 rounded-full; }
+  .badge-purple { @apply bg-violet-100  text-violet-700  text-xs font-semibold px-2.5 py-1 rounded-full; }
 
-  /* ── ヘッダー ── */
   .header-dark {
     @apply px-4 py-4 flex items-center justify-between;
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-header);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   }
 
-  /* ── 統計カード（ゴールド） ── */
   .stat-card {
     @apply rounded-xl p-4 text-center;
-    background: rgba(15, 23, 42, 0.5);
-    border: 1px solid var(--border-subtle);
+    background: var(--bg-card);
+    border: 1.5px solid var(--border-card);
+    box-shadow: var(--shadow-card);
   }
 
-  /* ── セクションタイトル ── */
   .section-title {
     @apply text-xs font-semibold uppercase tracking-widest mb-3 px-1;
     color: var(--text-muted);

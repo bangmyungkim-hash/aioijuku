@@ -7,41 +7,31 @@ export default async function CalendarPage() {
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase
-    .from("users")
-    .select("full_name, role")
-    .eq("id", user.id)
-    .single();
-
+    .from("users").select("full_name, role").eq("id", user.id).single();
   if (!profile) redirect("/login");
 
   const today = new Date().toISOString().split("T")[0];
   const threeMonthsLater = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 
   const { data: upcomingEvents } = await supabase
-    .from("calendar_events")
-    .select("id, title, start_date, end_date, type, memo")
-    .gte("start_date", today)
-    .lte("start_date", threeMonthsLater)
-    .order("start_date", { ascending: true });
+    .from("calendar_events").select("id, title, start_date, end_date, type, memo")
+    .gte("start_date", today).lte("start_date", threeMonthsLater).order("start_date", { ascending: true });
 
   const oneMonthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
   const { data: pastEvents } = await supabase
-    .from("calendar_events")
-    .select("id, title, start_date, end_date, type, memo")
-    .gte("start_date", oneMonthAgo)
-    .lt("start_date", today)
-    .order("start_date", { ascending: false });
+    .from("calendar_events").select("id, title, start_date, end_date, type, memo")
+    .gte("start_date", oneMonthAgo).lt("start_date", today).order("start_date", { ascending: false });
 
   const eventTypeConfig: Record<string, { label: string; color: string }> = {
-    holiday:  { label: "休校日",   color: "bg-rose-500/10 text-rose-400" },
-    lecture:  { label: "特別授業", color: "bg-sky-500/10 text-sky-400" },
-    exam:     { label: "試験",     color: "bg-amber-500/10 text-amber-400" },
-    other:    { label: "その他",   color: "bg-slate-700/50 text-slate-400" },
+    holiday:  { label: "休校日",   color: "bg-rose-100 text-rose-700" },
+    lecture:  { label: "特別授業", color: "bg-sky-100 text-sky-700" },
+    exam:     { label: "試験",     color: "bg-amber-100 text-amber-700" },
+    other:    { label: "その他",   color: "bg-stone-100 text-stone-600" },
   };
 
   const dashboardHref =
-    profile.role === "admin"   ? "/admin/dashboard" :
-    profile.role === "parent"  ? "/parent/dashboard" :
+    profile.role === "admin"  ? "/admin/dashboard" :
+    profile.role === "parent" ? "/parent/dashboard" :
     "/student/dashboard";
 
   const monthGroups: Record<string, typeof upcomingEvents> = {};
@@ -57,30 +47,36 @@ export default async function CalendarPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: "linear-gradient(180deg, #060b18 0%, #0c1425 100%)" }}>
+    <div className="min-h-screen" style={{ background: "var(--bg-primary)" }}>
       <header className="header-dark">
         <div className="flex items-center gap-3">
-          <a href={dashboardHref} className="text-slate-500 hover:text-slate-300 text-sm transition-colors">← ダッシュボード</a>
-          <span className="text-slate-700">|</span>
-          <span className="font-semibold text-slate-100">カレンダー</span>
+          <a href={dashboardHref} className="text-sm transition-colors"
+             style={{ color: "rgba(255,255,255,0.4)" }}>← ダッシュボード</a>
+          <span style={{ color: "rgba(255,255,255,0.15)" }}>|</span>
+          <span className="font-semibold" style={{ color: "rgba(255,255,255,0.9)" }}>カレンダー</span>
         </div>
-        <span className="text-sm text-slate-400">{profile?.full_name}</span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>{profile?.full_name}</span>
+          <form action="/api/auth/logout" method="POST">
+            <button type="submit" className="text-xs px-3 py-1.5 rounded-lg transition-all"
+              style={{ color: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.15)" }}>
+              ログアウト
+            </button>
+          </form>
+        </div>
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-8 space-y-8">
-
-        {/* 凡例 */}
         <div className="flex gap-3 flex-wrap">
           {Object.entries(eventTypeConfig).map(([key, cfg]) => (
             <span key={key} className={"text-xs px-3 py-1 rounded-full " + cfg.color}>{cfg.label}</span>
           ))}
         </div>
 
-        {/* 今後のイベント（月別） */}
         {Object.keys(monthGroups).length > 0 ? (
           Object.entries(monthGroups).map(([ym, events]) => (
             <section key={ym}>
-              <h2 className="text-base font-semibold text-slate-200 mb-3 px-1">{formatMonth(ym)}</h2>
+              <h2 className="text-base font-semibold text-stone-700 mb-3 px-1">{formatMonth(ym)}</h2>
               <div className="space-y-2">
                 {events!.map((e) => {
                   const cfg = eventTypeConfig[e.type] ?? eventTypeConfig.other;
@@ -88,17 +84,17 @@ export default async function CalendarPage() {
                   return (
                     <div key={e.id} className="card flex items-start gap-4">
                       <div className="text-center shrink-0 w-12">
-                        <p className="text-sm font-bold text-slate-400">{parseInt(e.start_date.slice(8))}日</p>
+                        <p className="text-sm font-bold text-stone-600">{parseInt(e.start_date.slice(8))}日</p>
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-medium text-slate-100">{e.title}</span>
+                          <span className="font-medium text-stone-800">{e.title}</span>
                           <span className={"text-xs px-2 py-0.5 rounded-full " + cfg.color}>{cfg.label}</span>
                         </div>
                         {!isSingleDay && (
-                          <p className="text-xs text-slate-500 mt-0.5">{e.start_date} 〜 {e.end_date}</p>
+                          <p className="text-xs text-stone-500 mt-0.5">{e.start_date} 〜 {e.end_date}</p>
                         )}
-                        {e.memo && <p className="text-xs text-slate-600 mt-1">{e.memo}</p>}
+                        {e.memo && <p className="text-xs text-stone-400 mt-1">{e.memo}</p>}
                       </div>
                     </div>
                   );
@@ -107,12 +103,11 @@ export default async function CalendarPage() {
             </section>
           ))
         ) : (
-          <div className="card text-center text-slate-600 py-16">
+          <div className="card text-center text-stone-400 py-16">
             <p className="text-sm">今後3ヶ月の予定はありません</p>
           </div>
         )}
 
-        {/* 過去のイベント */}
         {pastEvents && pastEvents.length > 0 && (
           <section>
             <h2 className="section-title">先月の記録</h2>
@@ -122,8 +117,8 @@ export default async function CalendarPage() {
                 return (
                   <div key={e.id} className="card flex items-center gap-3">
                     <div>
-                      <span className="text-sm font-medium text-slate-300">{e.title}</span>
-                      <span className="ml-2 text-xs text-slate-600">{e.start_date}</span>
+                      <span className="text-sm font-medium text-stone-700">{e.title}</span>
+                      <span className="ml-2 text-xs text-stone-400">{e.start_date}</span>
                     </div>
                   </div>
                 );
@@ -131,7 +126,6 @@ export default async function CalendarPage() {
             </div>
           </section>
         )}
-
       </main>
     </div>
   );

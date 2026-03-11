@@ -7,63 +7,43 @@ export default async function AdminDashboard() {
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase
-    .from("users")
-    .select("full_name, role")
-    .eq("id", user.id)
-    .single();
-
+    .from("users").select("full_name, role").eq("id", user.id).single();
   if (profile?.role !== "admin") redirect("/");
 
-  // 本日の出欠数を取得
   const today = new Date().toISOString().split("T")[0];
   const { count: todayAttendance } = await supabase
-    .from("attendance_logs")
-    .select("*", { count: "exact", head: true })
-    .eq("logged_date", today);
-
-  // 未確認の欠席連絡数
+    .from("attendance_logs").select("*", { count: "exact", head: true }).eq("logged_date", today);
   const { count: pendingAbsences } = await supabase
-    .from("absence_requests")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "pending");
-
-  // 生徒数
+    .from("absence_requests").select("*", { count: "exact", head: true }).eq("status", "pending");
   const { count: studentCount } = await supabase
-    .from("users")
-    .select("*", { count: "exact", head: true })
-    .eq("role", "student")
-    .eq("is_active", true);
+    .from("users").select("*", { count: "exact", head: true }).eq("role", "student").eq("is_active", true);
 
   return (
-    <div className="min-h-screen" style={{ background: "linear-gradient(180deg, #060b18 0%, #0c1425 100%)" }}>
+    <div className="min-h-screen" style={{ background: "var(--bg-primary)" }}>
       <header className="header-dark">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-white"
-               style={{ background: "linear-gradient(135deg, #d4a843, #b8912e)" }}>A</div>
-          <span className="font-semibold text-slate-100 tracking-tight">あいおい塾</span>
-          <span className="text-xs text-slate-600 border border-slate-700 px-2 py-0.5 rounded">管理</span>
+               style={{ background: "linear-gradient(135deg, #c9963a, #a87825)" }}>A</div>
+          <span className="font-semibold tracking-tight" style={{ color: "rgba(255,255,255,0.9)" }}>あいおい塾</span>
+          <span className="text-xs px-2 py-0.5 rounded"
+                style={{ color: "rgba(255,255,255,0.35)", border: "1px solid rgba(255,255,255,0.12)" }}>管理</span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-slate-400">{profile?.full_name}</span>
+          <span className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>{profile?.full_name}</span>
           <form action="/api/auth/logout" method="POST">
-            <button type="submit"
-              className="text-xs text-slate-500 hover:text-slate-300 border border-slate-700 hover:border-slate-600 px-3 py-1.5 rounded-lg transition-all">
+            <button type="submit" className="text-xs px-3 py-1.5 rounded-lg transition-all"
+              style={{ color: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.15)" }}>
               ログアウト
             </button>
           </form>
         </div>
       </header>
-
       <main className="max-w-3xl mx-auto px-4 py-8 space-y-8">
-
-        {/* サマリーカード */}
         <div className="grid grid-cols-3 gap-3">
           <SummaryCard label="本日の出席" value={todayAttendance ?? 0} unit="名" accent="emerald" />
           <SummaryCard label="未確認欠席連絡" value={pendingAbsences ?? 0} unit="件" accent="amber" />
           <SummaryCard label="在籍生徒数" value={studentCount ?? 0} unit="名" accent="violet" />
         </div>
-
-        {/* 管理メニュー */}
         <div>
           <h2 className="section-title">管理メニュー</h2>
           <div className="grid grid-cols-2 gap-3">
@@ -76,44 +56,38 @@ export default async function AdminDashboard() {
             <AdminNavCard href="/admin/announce"   label="お知らせ管理"   desc="お知らせの投稿・編集" />
           </div>
         </div>
-
       </main>
     </div>
   );
 }
 
-function SummaryCard({
-  label, value, unit, accent,
-}: {
+function SummaryCard({ label, value, unit, accent }: {
   label: string; value: number; unit: string;
   accent: "emerald" | "amber" | "violet";
 }) {
   const accentMap = {
-    emerald: { text: "text-emerald-400", border: "border-emerald-500/20" },
-    amber:   { text: "text-amber-400",   border: "border-amber-500/20" },
-    violet:  { text: "text-violet-400",  border: "border-violet-500/20" },
+    emerald: { text: "text-emerald-700", border: "border-emerald-200" },
+    amber:   { text: "text-amber-700",   border: "border-amber-200" },
+    violet:  { text: "text-violet-700",  border: "border-violet-200" },
   };
   const a = accentMap[accent];
   return (
     <div className={`stat-card ${a.border} border`}>
       <div className={`text-3xl font-bold ${a.text}`}>{value}</div>
-      <div className="text-xs font-medium text-slate-500 mt-0.5">{unit}</div>
-      <div className="text-xs text-slate-600 mt-1 leading-tight">{label}</div>
+      <div className="text-xs font-medium mt-0.5" style={{ color: "var(--text-muted)" }}>{unit}</div>
+      <div className="text-xs mt-1 leading-tight" style={{ color: "var(--text-muted)" }}>{label}</div>
     </div>
   );
 }
 
-function AdminNavCard({
-  href, label, desc,
-}: {
-  href: string; label: string; desc: string;
-}) {
+function AdminNavCard({ href, label, desc }: { href: string; label: string; desc: string }) {
   return (
-    <a href={href} className="card flex items-start gap-3 hover:border-amber-500/20 transition-all group">
-      <span className="w-1.5 h-1.5 rounded-full bg-amber-500/40 group-hover:bg-amber-500 transition-colors mt-2" />
+    <a href={href} className="card flex items-start gap-3 hover:border-amber-400 transition-all group">
+      <span className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0"
+            style={{ background: "rgba(184,135,42,0.5)" }} />
       <div>
-        <p className="font-medium text-slate-200 group-hover:text-slate-100 transition-colors">{label}</p>
-        <p className="text-xs text-slate-500 mt-0.5">{desc}</p>
+        <p className="font-medium text-stone-800 group-hover:text-stone-900 transition-colors">{label}</p>
+        <p className="text-xs text-stone-500 mt-0.5">{desc}</p>
       </div>
     </a>
   );

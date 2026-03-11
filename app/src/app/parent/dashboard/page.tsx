@@ -7,11 +7,7 @@ export default async function ParentDashboard() {
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase
-    .from("users")
-    .select("full_name, role")
-    .eq("id", user.id)
-    .single();
-
+    .from("users").select("full_name, role").eq("id", user.id).single();
   if (profile?.role !== "parent") redirect("/");
 
   const { data: links } = await supabase
@@ -47,27 +43,24 @@ export default async function ParentDashboard() {
   ];
 
   return (
-    <div className="min-h-screen" style={{ background: "linear-gradient(180deg, #060b18 0%, #0c1425 100%)" }}>
+    <div className="min-h-screen" style={{ background: "var(--bg-primary)" }}>
       <header className="header-dark">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-white"
-               style={{ background: "linear-gradient(135deg, #d4a843, #b8912e)" }}>A</div>
-          <span className="font-semibold text-slate-100 tracking-tight">あいおい塾</span>
+               style={{ background: "linear-gradient(135deg, #c9963a, #a87825)" }}>A</div>
+          <span className="font-semibold tracking-tight" style={{ color: "rgba(255,255,255,0.9)" }}>あいおい塾</span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-slate-400">{profile?.full_name} さん</span>
+          <span className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>{profile?.full_name} さん</span>
           <form action="/api/auth/logout" method="POST">
-            <button type="submit"
-              className="text-xs text-slate-500 hover:text-slate-300 border border-slate-700 hover:border-slate-600 px-3 py-1.5 rounded-lg transition-all">
+            <button type="submit" className="text-xs px-3 py-1.5 rounded-lg transition-all"
+              style={{ color: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.15)" }}>
               ログアウト
             </button>
           </form>
         </div>
       </header>
-
       <main className="max-w-2xl mx-auto px-4 py-8 space-y-8">
-
-        {/* お子様の状況 */}
         <section>
           <h2 className="section-title">お子様の状況</h2>
           {links && links.length > 0 ? (
@@ -78,16 +71,14 @@ export default async function ParentDashboard() {
                 return (
                   <div key={link.student_user_id} className="card flex items-center justify-between">
                     <div>
-                      <p className="font-semibold text-slate-100 text-lg">{name}</p>
-                      <div className="flex gap-4 mt-1.5 text-sm text-slate-500">
-                        <span>累積 <strong className="text-amber-400">{stats?.total_days ?? 0}</strong> 日</span>
-                        <span>連続 <strong className="text-emerald-400">{stats?.current_streak ?? 0}</strong> 日</span>
+                      <p className="font-semibold text-stone-800 text-lg">{name}</p>
+                      <div className="flex gap-4 mt-1.5 text-sm" style={{ color: "var(--text-muted)" }}>
+                        <span>累積 <strong className="text-amber-700">{stats?.total_days ?? 0}</strong> 日</span>
+                        <span>連続 <strong className="text-emerald-700">{stats?.current_streak ?? 0}</strong> 日</span>
                       </div>
                     </div>
-                    <a
-                      href={"/parent/student/" + link.student_user_id}
-                      className="text-sm font-medium text-amber-400 border border-amber-500/20 px-4 py-2 rounded-lg hover:bg-amber-500/5 transition whitespace-nowrap"
-                    >
+                    <a href={"/parent/student/" + link.student_user_id}
+                       className="text-sm font-medium text-amber-700 border border-amber-300 px-4 py-2 rounded-lg hover:bg-amber-50 transition whitespace-nowrap">
                       詳細 →
                     </a>
                   </div>
@@ -95,27 +86,22 @@ export default async function ParentDashboard() {
               })}
             </div>
           ) : (
-            <div className="card text-center py-10 text-slate-500">
+            <div className="card text-center py-10" style={{ color: "var(--text-muted)" }}>
               <p className="text-sm">お子様のアカウントが紐付けられていません。</p>
-              <p className="text-xs mt-1 text-slate-600">塾の先生にお問い合わせください。</p>
+              <p className="text-xs mt-1">塾の先生にお問い合わせください。</p>
             </div>
           )}
         </section>
-
-        {/* ナビゲーション */}
         <nav className="grid grid-cols-2 gap-3">
           {navItems.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className="card flex items-center gap-3 hover:border-amber-500/20 transition-all group"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500/40 group-hover:bg-amber-500 transition-colors" />
-              <span className="font-medium text-slate-300 group-hover:text-slate-100 transition-colors">{item.label}</span>
+            <a key={item.href} href={item.href}
+               className="card flex items-center gap-3 hover:border-amber-400 transition-all group">
+              <span className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                    style={{ background: "rgba(184,135,42,0.5)" }} />
+              <span className="font-medium text-stone-800 group-hover:text-stone-900 transition-colors">{item.label}</span>
             </a>
           ))}
         </nav>
-
       </main>
     </div>
   );
